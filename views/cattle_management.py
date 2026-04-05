@@ -7,7 +7,7 @@ import pandas as pd
 from utils.translations import t
 from utils.auth import get_lang, get_token, navigate_to
 from utils.theme import get_palette
-from services.api_client import api_get_cattle_list, api_create_cattle, api_update_cattle
+from services.api_client import api_get_cattle_list, api_create_cattle, api_update_cattle, api_get_users
 from components.navbar import render_navbar
 
 
@@ -52,6 +52,8 @@ def _render_cattle_list(lang: str, token: str, p: dict):
             t("breed", lang): c.get("breed", ""),
             t("age", lang): c.get("age", 0),
             t("farm_id", lang): c.get("farm_id", ""),
+            t("doctor_id", lang): c.get("doctor_id", "—"),
+            t("owner_id", lang): c.get("owner_id", "—"),
             t("status", lang): "🟢 " + c.get("status", "") if c.get("status") == "active" else "🔴 " + c.get("status", ""),
         })
 
@@ -61,16 +63,30 @@ def _render_cattle_list(lang: str, token: str, p: dict):
 
 
 def _render_add_cattle(lang: str, token: str, p: dict):
+    users = api_get_users(token) or []
+    admins = [u.get("username", "") for u in users if u.get("role") in ("admin", "super_admin")]
+    farmers = [u.get("username", "") for u in users if u.get("role") == "user"]
+
     with st.form("add_cattle_form"):
         col1, col2 = st.columns(2)
         with col1:
             cid = st.number_input(t("cattle_id", lang), min_value=1, step=1)
             name = st.text_input(t("cattle_name", lang), placeholder="e.g. Lakshmi")
             breed = st.text_input(t("breed", lang), placeholder="e.g. Holstein")
+            doctor_id = st.selectbox(
+                t("doctor_id", lang),
+                options=[""] + admins,
+                format_func=lambda x: "— None —" if x == "" else x,
+            )
         with col2:
             age = st.number_input(t("age", lang), min_value=0, step=1)
             farm_id = st.text_input(t("farm_id", lang), placeholder="e.g. farm_01")
             status = st.selectbox(t("status", lang), ["active", "inactive"])
+            owner_id = st.selectbox(
+                t("owner_id", lang),
+                options=[""] + farmers,
+                format_func=lambda x: "— None —" if x == "" else x,
+            )
 
         submitted = st.form_submit_button(
             f"{t('add_cattle', lang)}", use_container_width=True, type="primary"
@@ -82,8 +98,12 @@ def _render_add_cattle(lang: str, token: str, p: dict):
             return
 
         with st.spinner(t("loading", lang)):
-            result = api_create_cattle(token, cid, name.strip(), farm_id.strip(),
-                                       breed.strip(), age, status)
+            result = api_create_cattle(
+                token, cid, name.strip(), farm_id.strip(),
+                breed.strip(), age, status,
+                doctor_id=doctor_id or None,
+                owner_id=owner_id or None,
+            )
 
         if result:
             st.success(f"✅ Cattle '{name}' (CID: {cid}) created successfully!")
@@ -98,6 +118,10 @@ def _render_edit_cattle(lang: str, token: str, p: dict):
     if not cattle_list:
         st.info(t("no_data", lang))
         return
+
+    users = api_get_users(token) or []
+    admins = [u.get("username", "") for u in users if u.get("role") in ("admin", "super_admin")]
+    farmers = [u.get("username", "") for u in users if u.get("role") == "user"]
 
     selected_cid = st.selectbox(
         "Select cattle to edit:",
@@ -114,6 +138,14 @@ def _render_edit_cattle(lang: str, token: str, p: dict):
         with col1:
             name = st.text_input(t("cattle_name", lang), value=cattle.get("name", ""))
             breed = st.text_input(t("breed", lang), value=cattle.get("breed", ""))
+            doctor_options = [""] + admins
+            current_doctor = cattle.get("doctor_id", "") or ""
+            doctor_id = st.selectbox(
+                t("doctor_id", lang),
+                options=doctor_options,
+                index=doctor_options.index(current_doctor) if current_doctor in doctor_options else 0,
+                format_func=lambda x: "— None —" if x == "" else x,
+            )
         with col2:
             age = st.number_input(t("age", lang), value=cattle.get("age", 0), min_value=0)
             farm_id = st.text_input(t("farm_id", lang), value=cattle.get("farm_id", ""))
@@ -123,6 +155,14 @@ def _render_edit_cattle(lang: str, token: str, p: dict):
                 t("status", lang),
                 status_options,
                 index=status_options.index(current_status) if current_status in status_options else 0,
+            )
+            owner_options = [""] + farmers
+            current_owner = cattle.get("owner_id", "") or ""
+            owner_id = st.selectbox(
+                t("owner_id", lang),
+                options=owner_options,
+                index=owner_options.index(current_owner) if current_owner in owner_options else 0,
+                format_func=lambda x: "— None —" if x == "" else x,
             )
 
         submitted = st.form_submit_button(
@@ -141,6 +181,12 @@ def _render_edit_cattle(lang: str, token: str, p: dict):
             update_data["farm_id"] = farm_id.strip()
         if status != cattle.get("status"):
             update_data["status"] = status
+        new_doctor = doctor_id or None
+        if new_doctor != cattle.get("doctor_id"):
+            update_data["doctor_id"] = new_doctor
+        new_owner = owner_id or None
+        if new_owner != cattle.get("owner_id"):
+            update_data["owner_id"] = new_owner
 
         if not update_data:
             st.info("No changes detected.")

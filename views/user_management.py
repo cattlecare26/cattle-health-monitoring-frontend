@@ -7,6 +7,7 @@ Admin: can only create users scoped to their farms.
 import streamlit as st
 import re
 import pandas as pd
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, get_user, is_super_admin, get_effective_role
 from utils.theme import get_palette
@@ -204,11 +205,11 @@ def _render_edit_user(lang: str, token: str, current_user: dict, p: dict):
         f"""<div style="background: {p['card_bg']}; border: 1px solid {p['card_border']};
             border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;
             box-shadow: 0 1px 3px {p['card_shadow']}; color: {p['text']};">
-            <strong>{user.get('full_name', '')}</strong>
-            <span style="color: {p['text_secondary']};"> &mdash; {user.get('email', '')}</span>
+            <strong>{_esc(user.get('full_name', ''))}</strong>
+            <span style="color: {p['text_secondary']};"> &mdash; {_esc(user.get('email', ''))}</span>
             <br><span style="color: {p['text_muted']}; font-size: 0.85rem;">
-                Role: {user.get('role', '').upper()} &middot;
-                Farms: {', '.join(user.get('farm_ids', [])) or 'All'} &middot;
+                Role: {_esc(user.get('role', '').upper())} &middot;
+                Farms: {_esc(', '.join(user.get('farm_ids', [])) or 'All')} &middot;
                 {'Active' if user.get('is_active') else 'Inactive'}
             </span>
         </div>""",

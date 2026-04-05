@@ -6,7 +6,7 @@ Main application entry point with role-based routing and enterprise theme.
 import streamlit as st
 from utils.auth import (
     init_session_state, is_authenticated, is_super_admin, is_admin, is_user,
-    get_effective_role, get_theme,
+    get_effective_role, get_theme, validate_session,
 )
 from utils.theme import get_palette
 from components.sidebar import render_sidebar
@@ -604,8 +604,18 @@ def main():
 
     if not is_authenticated():
         from views.login import render as render_login
+        # Show session expired message if applicable
+        if st.session_state.get("session_expired"):
+            st.warning("⏰ Your session has expired. Please sign in again.")
+            st.session_state.session_expired = False
         render_login()
         return
+
+    # Validate token is still valid (debounced — at most once per 30s)
+    if not validate_session():
+        # validate_session already called handle_session_expired()
+        # Rerun to show login page with the expired message
+        st.rerun()
 
     render_sidebar()
 

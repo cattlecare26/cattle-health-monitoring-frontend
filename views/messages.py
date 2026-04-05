@@ -4,6 +4,7 @@ Shows alerts with cattle ID, owner info, and phone number.
 """
 
 import streamlit as st
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, is_admin, is_super_admin
 from utils.theme import get_palette
@@ -53,8 +54,8 @@ def render():
         count = alert.get("consecutive_count", 0)
 
         cattle = cattle_by_cid.get(cid, {})
-        cattle_name = cattle.get("name", f"Cattle {cid}")
-        farm = cattle.get("farm_id", "")
+        cattle_name = _esc(cattle.get("name", f"Cattle {cid}"))
+        farm = _esc(cattle.get("farm_id", ""))
 
         owner_name = "—"
         owner_phone = "—"

@@ -3,6 +3,7 @@ User profile page - view and display user information.
 """
 
 import streamlit as st
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, get_user, get_effective_role
 from utils.theme import get_palette
@@ -40,7 +41,7 @@ def render():
                     box-shadow: 0 1px 3px {p['card_shadow']};">
             <div style="text-align: center; margin-bottom: 1rem;">
                 <div style="font-size: 3rem;">{role_emoji}</div>
-                <h3 style="margin: 0.5rem 0 0; color: {p['text']};">{user.get('full_name', 'User')}</h3>
+                <h3 style="margin: 0.5rem 0 0; color: {p['text']};">{_esc(user.get('full_name', 'User'))}</h3>
                 <span style="background: {p['primary']}; color: {p['primary_text']}; padding: 2px 10px;
                              border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
                     {role_label}
@@ -90,7 +91,7 @@ def render():
                     <div style="background: {p['status_info_bg']}; border: 1px solid {p['border']};
                                 border-radius: 8px; padding: 0.75rem; text-align: center; margin: 0.25rem 0;">
                         <div style="font-size: 1.5rem;"></div>
-                        <div style="font-weight: 600; color: {p['text']};">{farm}</div>
+                        <div style="font-weight: 600; color: {p['text']};">{_esc(farm)}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,

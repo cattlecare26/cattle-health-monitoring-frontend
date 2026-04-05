@@ -496,6 +496,108 @@ TRANSLATIONS = {
         "ta": "கால்நடை ஒதுக்கு",
         "hi": "पशु आवंटित करें",
     },
+
+    # ── ML Prediction & Behavior ──
+    "prediction": {
+        "en": "Prediction",
+        "ta": "கணிப்பு",
+        "hi": "पूर्वानुमान",
+    },
+    "behavior": {
+        "en": "Behavior",
+        "ta": "நடத்தை",
+        "hi": "व्यवहार",
+    },
+    "ml_status": {
+        "en": "ML Status",
+        "ta": "ML நிலை",
+        "hi": "ML स्थिति",
+    },
+    "normal": {
+        "en": "Normal",
+        "ta": "சாதாரண",
+        "hi": "सामान्य",
+    },
+    "anomaly": {
+        "en": "Anomaly",
+        "ta": "அசாதாரண",
+        "hi": "विसंगति",
+    },
+    "drinking": {
+        "en": "Drinking",
+        "ta": "குடிப்பது",
+        "hi": "पानी पीना",
+    },
+    "grazing": {
+        "en": "Grazing",
+        "ta": "மேய்ச்சல்",
+        "hi": "चराई",
+    },
+    "lying": {
+        "en": "Lying",
+        "ta": "படுத்திருப்பது",
+        "hi": "लेटना",
+    },
+    "ruminating": {
+        "en": "Ruminating",
+        "ta": "அசை போடுவது",
+        "hi": "जुगाली करना",
+    },
+    "standing": {
+        "en": "Standing",
+        "ta": "நிற்பது",
+        "hi": "खड़ा होना",
+    },
+    "walking": {
+        "en": "Walking",
+        "ta": "நடப்பது",
+        "hi": "चलना",
+    },
+    "other_behavior": {
+        "en": "Other",
+        "ta": "மற்றவை",
+        "hi": "अन्य",
+    },
+    "doctor_id": {
+        "en": "Doctor",
+        "ta": "மருத்துவர்",
+        "hi": "डॉक्टर",
+    },
+    "owner_id": {
+        "en": "Owner",
+        "ta": "உரிமையாளர்",
+        "hi": "मालिक",
+    },
+    "alert_triggered": {
+        "en": "Alert Triggered",
+        "ta": "எச்சரிக்கை தூண்டப்பட்டது",
+        "hi": "अलर्ट ट्रिगर हुआ",
+    },
+    "anomaly_count": {
+        "en": "Anomaly Count",
+        "ta": "அசாதாரண எண்ணிக்கை",
+        "hi": "विसंगति गणना",
+    },
+    "no_prediction": {
+        "en": "No prediction available",
+        "ta": "கணிப்பு இல்லை",
+        "hi": "कोई पूर्वानुमान उपलब्ध नहीं",
+    },
+    "conditions": {
+        "en": "Health Conditions",
+        "ta": "சுகாதார நிலைகள்",
+        "hi": "स्वास्थ्य स्थितियाँ",
+    },
+    "session_expired": {
+        "en": "Your session has expired. Please sign in again.",
+        "ta": "உங்கள் அமர்வு காலாவதியானது. மீண்டும் உள்நுழையவும்.",
+        "hi": "आपका सत्र समाप्त हो गया है। कृपया पुनः साइन इन करें।",
+    },
+    "session_invalid": {
+        "en": "Session invalid. Please sign in.",
+        "ta": "அமர்வு செல்லாது. உள்நுழையவும்.",
+        "hi": "सत्र अमान्य। कृपया साइन इन करें।",
+    },
 }
 
 

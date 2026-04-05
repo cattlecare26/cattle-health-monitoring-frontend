@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000").rstrip("/")
 
 # Use a session to bypass any system HTTP proxy for local API calls
 _session = requests.Session()
@@ -20,9 +20,18 @@ def _headers(token: str) -> dict:
 
 
 def _handle(resp: requests.Response) -> dict | list | None:
-    """Return JSON on success, raise on failure."""
+    """Return JSON on success, handle auth failures, raise on other errors."""
     if resp.status_code in (200, 201):
         return resp.json()
+    if resp.status_code == 401:
+        # Token expired or invalid — trigger session expiry only if logged in
+        try:
+            import streamlit as st
+            if st.session_state.get("authenticated"):
+                from utils.auth import handle_session_expired
+                handle_session_expired()
+        except Exception:
+            pass
     return None
 
 
@@ -166,11 +175,17 @@ def api_get_cattle(token: str, cid: int) -> dict | None:
 
 
 def api_create_cattle(token: str, cid: int, name: str, farm_id: str,
-                      breed: str, age: int, status: str = "active") -> dict | None:
+                      breed: str, age: int, status: str = "active",
+                      doctor_id: str = None, owner_id: str = None) -> dict | None:
     try:
+        payload = {"cid": cid, "name": name, "farm_id": farm_id, "breed": breed, "age": age, "status": status}
+        if doctor_id:
+            payload["doctor_id"] = doctor_id
+        if owner_id:
+            payload["owner_id"] = owner_id
         r = _session.post(
             f"{BASE_URL}/api/v1/cattle",
-            json={"cid": cid, "name": name, "farm_id": farm_id, "breed": breed, "age": age, "status": status},
+            json=payload,
             headers=_headers(token),
             timeout=10,
         )
@@ -242,6 +257,19 @@ def api_get_cattle_range(token: str, cid: int, start: str, end: str) -> list | N
         r = _session.get(
             f"{BASE_URL}/api/v1/cattle/{cid}/range",
             params={"start": start, "end": end},
+            headers=_headers(token),
+            timeout=15,
+        )
+        return _handle(r)
+    except requests.RequestException:
+        return None
+
+
+def api_get_cattle_status(token: str, cid: int) -> dict | None:
+    """Get real-time ML prediction status for a cattle."""
+    try:
+        r = _session.get(
+            f"{BASE_URL}/api/v1/cattle/{cid}/status",
             headers=_headers(token),
             timeout=15,
         )

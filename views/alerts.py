@@ -5,6 +5,7 @@ Health evaluation available to super admin only.
 
 import streamlit as st
 import pandas as pd
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, is_super_admin, is_admin
 from utils.theme import get_palette, health_color, health_bg
@@ -64,8 +65,8 @@ def _render_recent_alerts(lang: str, token: str, p: dict):
         details = a.get("health_details", {})
 
         cattle = cattle_by_cid.get(cid, {})
-        cattle_name = cattle.get("name", f"Cattle {cid}")
-        farm = cattle.get("farm_id", "")
+        cattle_name = _esc(cattle.get("name", f"Cattle {cid}"))
+        farm = _esc(cattle.get("farm_id", ""))
 
         owner = "—"
         for u in farmers:
@@ -79,8 +80,14 @@ def _render_recent_alerts(lang: str, token: str, p: dict):
                 st.markdown(f"**Level:** {level.upper()}")
                 st.markdown(f"**Bad readings:** {count}")
                 st.markdown(f"**Farm:** {farm}")
+                if a.get("email_sent"):
+                    st.markdown("**📧 Email sent:** ✅")
+                if a.get("graph_generated"):
+                    st.markdown("**📊 Graph generated:** ✅")
             with c2:
                 st.markdown(f"**Owner:** {owner}")
+                if a.get("doctor_name"):
+                    st.markdown(f"**Doctor:** {a.get('doctor_name')}")
                 temp = details.get("latest_temperature")
                 bpm = details.get("latest_bpm")
                 if temp:
@@ -197,10 +204,35 @@ def _show_result(result: dict, p: dict):
     color = health_color(status, p)
     bg = health_bg(status, p)
     emoji = "🟢" if status == "healthy" else "🟡" if status == "warning" else "🔴"
+    alert_triggered = result.get("alert_triggered", False)
+    email_sent = result.get("email_sent", False)
+    consecutive = result.get("consecutive_bad_count", 0)
+    ml_pred = result.get("ml_prediction", {})
+
+    alert_badge = "🚨 Alert Triggered" if alert_triggered else ""
+    email_badge = "📧 Email Sent" if email_sent else ""
+    ml_info = ""
+    if ml_pred:
+        ml_info = f"🤖 {ml_pred.get('behavior', '?')} ({ml_pred.get('status', '?')})"
+
+    badges = " · ".join(filter(None, [alert_badge, email_badge, ml_info]))
+
     st.markdown(
         f"""<div style="padding: 0.75rem; margin: 0.5rem 0; border-left: 4px solid {color};
             background: {bg}; border-radius: 6px; color: {p['text']};">
             {emoji} <strong>CID {result.get('cid', '?')}</strong> — {status.upper()}
-            <br><span style="color: {p['text_secondary']}; font-size: 0.85rem;">{result.get('message', '')}</span></div>""",
+            {f' · Bad readings: {consecutive}' if consecutive else ''}
+            <br><span style="color: {p['text_secondary']}; font-size: 0.85rem;">{result.get('message', '')}</span>
+            {f'<br><span style="font-size: 0.8rem; color: {p["text_muted"]};">{badges}</span>' if badges else ''}
+        </div>""",
         unsafe_allow_html=True,
     )
+
+    conditions = result.get("conditions", [])
+    if conditions:
+        for cond in conditions:
+            cond_status = cond.get("status", "unknown")
+            reasons = cond.get("reasons", [])
+            if reasons:
+                for r in reasons:
+                    st.markdown(f"  - _{cond_status}_: {r}")

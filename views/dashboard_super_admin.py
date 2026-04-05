@@ -4,6 +4,7 @@ Super Admin dashboard - full system overview with Admin > User > Cattle mapping.
 
 import streamlit as st
 import pandas as pd
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, get_user, navigate_to
 from utils.theme import get_palette, health_color, health_bg, ACCENT

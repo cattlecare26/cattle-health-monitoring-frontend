@@ -3,6 +3,7 @@ User dashboard - farmer's view: their cattle with health status.
 """
 
 import streamlit as st
+from html import escape as _esc
 from utils.translations import t
 from utils.auth import get_lang, get_token, get_user, navigate_to
 from utils.theme import get_palette, health_color, health_bg, ACCENT
@@ -92,8 +93,8 @@ def render():
 
 def _render_cattle_card(cattle: dict, sensor: dict | None, lang: str, p: dict):
     cid = cattle["cid"]
-    name = cattle.get("name", f"Cattle {cid}")
-    breed = cattle.get("breed", "Unknown")
+    name = _esc(cattle.get("name", f"Cattle {cid}"))
+    breed = _esc(cattle.get("breed", "Unknown"))
     age = cattle.get("age", 0)
 
     temp = sensor.get("temperature", 0) if sensor else 0
@@ -105,7 +106,7 @@ def _render_cattle_card(cattle: dict, sensor: dict | None, lang: str, p: dict):
     elif temp < 35.0 and temp > 0:
         h_status = "warning"
 
-    h_color = health_color(h_status, p)
+    h_color = health_color(h_status if h_status != "critical" else "critical", p)
     h_label = t(h_status if h_status != "critical" else "critical", lang)
 
     temp_str = f"{temp:.1f}°C" if temp > 0 else "N/A"
